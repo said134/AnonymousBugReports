@@ -1,0 +1,1317 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin" />
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Anonymous Bug Reports</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      :root {
+        --bg-base: #010409;
+        --bg-overlay: rgba(6, 10, 22, 0.92);
+        --bg-surface: rgba(10, 17, 33, 0.9);
+        --bg-soft: rgba(13, 23, 46, 0.78);
+        --border-soft: rgba(46, 204, 149, 0.28);
+        --border-strong: rgba(94, 234, 212, 0.45);
+        --text-primary: #f4f8ff;
+        --text-secondary: #c8d4ff;
+        --text-muted: #8ca3d9;
+        --accent-primary: #3b82f6;
+        --accent-secondary: #2dd4bf;
+        --accent-tertiary: #22c55e;
+        --success: #34d399;
+        --danger: #fb7185;
+        --shadow-sm: 0 16px 32px rgba(1, 9, 20, 0.32);
+        --shadow-lg: 0 36px 70px rgba(2, 12, 30, 0.6);
+        --radius-lg: 22px;
+        --radius-md: 16px;
+        --radius-sm: 12px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+      body {
+        min-height: 100vh;
+        background: radial-gradient(circle at 18% 18%, rgba(59, 130, 246, 0.35) 0%, transparent 48%),
+          radial-gradient(circle at 82% 12%, rgba(45, 212, 191, 0.32) 0%, transparent 55%),
+          radial-gradient(circle at 50% 90%, rgba(34, 197, 94, 0.25) 0%, transparent 55%),
+          var(--bg-base);
+        color: var(--text-primary);
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        line-height: 1.6;
+        overflow-x: hidden;
+        position: relative;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 52px 52px;
+        mix-blend-mode: overlay;
+        opacity: 0.4;
+        z-index: -2;
+      }
+      .topbar {
+        position: fixed;
+        inset: 0 0 auto 0;
+        padding: 1.25rem clamp(1.5rem, 5vw, 3rem);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        backdrop-filter: blur(18px);
+        background: rgba(5, 12, 26, 0.72);
+        border-bottom: 1px solid rgba(45, 212, 191, 0.22);
+        box-shadow: var(--shadow-sm);
+        z-index: 100;
+      }
+      .topbar::after {
+        content: "";
+        position: absolute;
+        inset: auto 0 0 0;
+        height: 2px;
+        width: 0;
+        background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        transition: width 0.4s ease;
+      }
+      .topbar.connected::after {
+        width: 100%;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        font-size: 0.95rem;
+        color: var(--text-muted);
+      }
+      .logo img {
+        height: 30px;
+        filter: brightness(1.2);
+      }
+      #connect {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.65rem 1.6rem;
+        border-radius: 999px;
+        border: 1px solid rgba(226, 232, 255, 0.08);
+        background: linear-gradient(120deg, rgba(99, 102, 241, 0.95), rgba(34, 211, 238, 0.95));
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        box-shadow: 0 10px 30px rgba(99, 102, 241, 0.35);
+      }
+      #connect:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 40px rgba(34, 211, 238, 0.32);
+      }
+      #connect:focus-visible {
+        outline: 2px solid var(--accent-secondary);
+        outline-offset: 2px;
+      }
+      #connect:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+      #connect img {
+        width: 20px;
+        height: 20px;
+      }
+      main {
+        padding: calc(5.5rem + 48px) clamp(1.5rem, 5vw, 3rem) 4.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 3.5rem;
+        position: relative;
+      }
+      .hero {
+        display: flex;
+        flex-direction: column;
+        gap: 1.75rem;
+        padding: clamp(2.25rem, 5vw, 3rem);
+        border-radius: var(--radius-lg);
+        background: linear-gradient(135deg, rgba(12, 20, 40, 0.92), rgba(31, 43, 86, 0.82));
+        border: 1px solid var(--border-soft);
+        box-shadow: var(--shadow-sm);
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .hero-header {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.4rem 0.9rem;
+        border-radius: 999px;
+        background: rgba(45, 212, 191, 0.16);
+        border: 1px solid rgba(45, 212, 191, 0.4);
+        font-size: 0.75rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--accent-secondary);
+      }
+      .hero h1 {
+        font-size: clamp(2.3rem, 5vw, 3.6rem);
+        font-weight: 700;
+        letter-spacing: -0.04em;
+        color: var(--text-primary);
+        text-shadow: 0 12px 32px rgba(45, 212, 191, 0.2);
+      }
+      .hero p {
+        max-width: 640px;
+        color: var(--text-secondary);
+        font-size: 1.05rem;
+      }
+      .hero-metrics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .metric {
+        min-width: 140px;
+        padding: 0.85rem 1rem;
+        border-radius: var(--radius-sm);
+        background: rgba(12, 22, 42, 0.72);
+        border: 1px solid rgba(45, 212, 191, 0.25);
+      }
+      .metric span {
+        display: block;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+      .metric small {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .cards {
+        display: grid;
+        gap: 2.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .card {
+        background: var(--bg-surface);
+        border: 1px solid rgba(61, 131, 253, 0.25);
+        border-radius: var(--radius-lg);
+        padding: 2.5rem 2.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.75rem;
+        position: relative;
+        transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+        box-shadow: var(--shadow-sm);
+      }
+      .card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        border: 1px solid transparent;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.5), rgba(45, 212, 191, 0.35)) border-box;
+        mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+      .card:hover {
+        transform: translateY(-6px);
+        border-color: var(--border-strong);
+        box-shadow: var(--shadow-lg);
+      }
+      .card:hover::after {
+        opacity: 0.8;
+      }
+      .card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 1.25rem;
+      }
+      .card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(45, 212, 191, 0.22));
+        color: var(--accent-secondary);
+        flex-shrink: 0;
+      }
+      .card-icon.secondary {
+        background: linear-gradient(135deg, rgba(45, 212, 191, 0.25), rgba(34, 197, 94, 0.2));
+        color: var(--accent-tertiary);
+      }
+      .card-header h2 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.35rem;
+      }
+      .card-subtitle {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+        max-width: 520px;
+      }
+      .card-note {
+        padding: 0.9rem 1rem;
+        border-radius: var(--radius-sm);
+        background: rgba(11, 20, 37, 0.78);
+        border: 1px dashed rgba(45, 212, 191, 0.4);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+      .card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      .field-grid {
+        display: grid;
+        gap: 1.25rem;
+      }
+      .field-grid.two {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+      }
+      .field label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+      .field-control {
+        position: relative;
+      }
+      .field-control input,
+      .field-control select {
+        width: 100%;
+        padding: 0.9rem 1.05rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(45, 212, 191, 0.22);
+        background: rgba(13, 23, 46, 0.78);
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        font-family: "JetBrains Mono", monospace;
+        letter-spacing: 0.02em;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        text-align: center;
+      }
+      .field-control select {
+        appearance: none;
+        cursor: pointer;
+        text-align-last: center;
+      }
+      .field-control.select::after {
+        content: "▾";
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        pointer-events: none;
+        font-size: 0.75rem;
+      }
+      .field-control input:focus,
+      .field-control select:focus {
+        outline: none;
+        border-color: rgba(59, 130, 246, 0.6);
+        box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.18);
+        background: rgba(10, 19, 37, 0.95);
+      }
+      .field-control input:disabled,
+      .field-control select:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .button-field {
+        display: flex;
+        align-items: flex-end;
+      }
+      .button-field .btn {
+        width: 100%;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.65rem;
+        padding: 0.9rem 1.4rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid transparent;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+      .btn span {
+        pointer-events: none;
+      }
+      .btn-primary {
+        background: linear-gradient(120deg, rgba(59, 130, 246, 0.92), rgba(45, 212, 191, 0.88));
+        color: #fff;
+        box-shadow: 0 12px 36px rgba(59, 130, 246, 0.35);
+      }
+      .btn-secondary {
+        background: rgba(13, 23, 46, 0.85);
+        border: 1px solid rgba(45, 212, 191, 0.4);
+        color: var(--accent-secondary);
+      }
+      .btn-ghost {
+        background: rgba(12, 20, 38, 0.72);
+        border: 1px solid rgba(59, 130, 246, 0.32);
+        color: var(--accent-primary);
+      }
+      .btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 40px rgba(45, 212, 191, 0.3);
+      }
+      .btn:focus-visible {
+        outline: 2px solid var(--accent-secondary);
+        outline-offset: 2px;
+      }
+      .btn:disabled {
+        opacity: 0.6;
+        transform: none;
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+      .status-panel {
+        display: grid;
+        gap: 1.5rem;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .status-box {
+        padding: 1.6rem 2rem;
+        background: var(--bg-soft);
+        border: 1px solid rgba(45, 212, 191, 0.28);
+        border-radius: var(--radius-md);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.92rem;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 68px;
+        text-align: center;
+      }
+      .result-box {
+        padding: 1.2rem 1.4rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(129, 140, 248, 0.28);
+        background: rgba(13, 20, 39, 0.72);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        min-height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      .recent-submissions {
+        margin-top: 1.75rem;
+        padding: 1.25rem 1.4rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(94, 101, 235, 0.28);
+        background: rgba(14, 21, 44, 0.78);
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+      }
+      .recent-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .recent-header h3 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+      .badge {
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        border: 1px solid rgba(34, 211, 238, 0.35);
+        color: var(--accent-secondary);
+        font-size: 0.68rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .recent-submissions table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+      }
+      .recent-submissions th {
+        text-align: left;
+        padding-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        border-bottom: 1px solid rgba(99, 102, 241, 0.25);
+      }
+      .recent-submissions td {
+        padding: 0.45rem 0;
+        border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.8rem;
+      }
+      .recent-submissions tbody tr:last-child td {
+        border-bottom: none;
+      }
+      details#ownerTools {
+        margin-top: 2rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(94, 101, 235, 0.28);
+        background: rgba(12, 20, 40, 0.8);
+        padding: 0 1.25rem 1.25rem;
+      }
+      details#ownerTools[hidden] {
+        display: none;
+      }
+      details#ownerTools summary {
+        cursor: pointer;
+        padding: 1rem 0;
+        font-weight: 600;
+        color: var(--text-secondary);
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      details#ownerTools summary::after {
+        content: "▾";
+        font-size: 0.85rem;
+        color: var(--accent-secondary);
+        transition: transform 0.25s ease;
+      }
+      details#ownerTools[open] summary::after {
+        transform: rotate(180deg);
+      }
+      .span-two {
+        grid-column: 1 / -1;
+      }
+      .loading::after {
+        content: "";
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid rgba(148, 163, 232, 0.35);
+        border-top-color: var(--accent-secondary);
+        animation: spin 1s linear infinite;
+        margin-left: 12px;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .encrypt-animation::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(120deg, rgba(99, 102, 241, 0.35), rgba(34, 211, 238, 0.25));
+        mix-blend-mode: screen;
+        animation: shimmer 1.6s ease-in-out infinite;
+        opacity: 0.4;
+      }
+      @keyframes shimmer {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+      .success-flash {
+        animation: flash 0.6s ease;
+      }
+      @keyframes flash {
+        0%,
+        100% {
+          box-shadow: var(--shadow-sm);
+        }
+        50% {
+          box-shadow: var(--shadow-lg);
+        }
+      }
+      @media (max-width: 900px) {
+        .cards {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 640px) {
+        .topbar {
+          padding: 1rem 1.15rem;
+        }
+        main {
+          padding: 6rem 1.15rem 4rem;
+        }
+        .card {
+          padding: 2rem 1.6rem;
+        }
+        .button-field {
+          align-items: stretch;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="topbar" id="topbar">
+      <div class="logo">
+        <img
+          src="https://raw.githubusercontent.com/zama-ai/fhevm/main/docs/.gitbook/assets/fhevm-dark.png"
+          alt="Zama FHE"
+        />
+        Anonymous Bug Reports
+      </div>
+      <button id="connect" title="Connect MetaMask">
+        <img
+          src="https://raw.githubusercontent.com/MetaMask/metamask-extension/master/app/images/logo/metamask-fox.svg"
+          alt="MetaMask"
+        />
+        <span>Connect</span>
+      </button>
+    </nav>
+    <main>
+      <section class="hero">
+        <span class="hero-header">Zama FHE dApp</span>
+        <h1>Anonymous Bug Reports</h1>
+        <p>
+          Collect encrypted severity feedback without exposing individual submissions. Leverage Zama's Relayer SDK on
+          Sepolia to aggregate scores privately while keeping workflows familiar.
+        </p>
+        <div class="hero-metrics">
+          <div class="metric">
+            <span>Sepolia</span>
+            <small>Network</small>
+          </div>
+          <div class="metric">
+            <span>Fully Homomorphic</span>
+            <small>Encryption</small>
+          </div>
+          <div class="metric">
+            <span>Relayer SDK 0.2</span>
+            <small>Integration</small>
+          </div>
+        </div>
+      </section>
+      <section class="cards">
+        <article class="card" id="reportCard">
+          <header class="card-header">
+            <span class="card-icon">
+              <i class="fa-solid fa-shield-halved"></i>
+            </span>
+            <div>
+              <h2>Submit Bug Report</h2>
+              <p class="card-subtitle">
+                Encrypt a severity rating (1-5) locally and append an anonymous entry to the selected project.
+              </p>
+            </div>
+          </header>
+          <p class="card-note">
+            Severity is encrypted client-side with the Zama Relayer SDK. Each submission includes an auto-generated
+            synthetic content hash to satisfy on-chain validation while keeping payloads private.
+          </p>
+          <div class="card-body">
+            <div class="field-grid two">
+              <div class="field">
+                <label for="projectId">Project ID</label>
+                <div class="field-control">
+                  <input type="number" id="projectId" placeholder="1" min="1" disabled />
+                </div>
+              </div>
+              <div class="field">
+                <label for="severity">Severity (1-5)</label>
+                <div class="field-control select">
+                  <select id="severity" disabled>
+                    <option value="" disabled selected>Select severity</option>
+                    <option value="1">1 - Low</option>
+                    <option value="2">2 - Medium</option>
+                    <option value="3">3 - High</option>
+                    <option value="4">4 - Critical</option>
+                    <option value="5">5 - Urgent</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <button id="submitReportBtn" class="btn btn-primary" disabled>
+              <span>Submit Report</span>
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </div>
+        </article>
+        <article class="card" id="aggregateCard">
+          <header class="card-header">
+            <span class="card-icon secondary">
+              <i class="fa-solid fa-chart-line"></i>
+            </span>
+            <div>
+              <h2>View Aggregates</h2>
+              <p class="card-subtitle">
+                Retrieve public handles for encrypted sums and counts, decrypt client-side, and review the resulting
+                averages.
+              </p>
+            </div>
+          </header>
+          <p class="card-note">
+            Aggregated values are marked for public decryption by the contract. Owner tools become available automatically
+            when you connect with the contract owner address.
+          </p>
+          <div class="card-body">
+            <div class="field-grid two">
+              <div class="field">
+                <label for="viewProjectId">Project ID</label>
+                <div class="field-control">
+                  <input type="number" id="viewProjectId" placeholder="1" min="1" disabled />
+                </div>
+              </div>
+              <div class="field button-field">
+                <button id="viewAggregatesBtn" class="btn btn-secondary" disabled>
+                  <span>View Aggregates</span>
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
+            <div id="aggregateResult" class="result-box" aria-live="polite">
+              Aggregated metrics will appear here once retrieved.
+            </div>
+            <div id="recentSubmissions" class="recent-submissions" hidden>
+              <div class="recent-header">
+                <h3>Recent Submissions</h3>
+                <span class="badge">Last 5 logs</span>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Block</th>
+                    <th>Content Hash</th>
+                    <th>Severity Handle</th>
+                  </tr>
+                </thead>
+                <tbody id="recentSubmissionsBody"></tbody>
+              </table>
+            </div>
+            <details id="ownerTools" hidden>
+              <summary>Owner Tools</summary>
+              <div class="field-grid two">
+                <div class="field">
+                  <label for="resetProjectId">Project ID to Reset</label>
+                  <div class="field-control">
+                    <input type="number" id="resetProjectId" placeholder="1" min="1" disabled />
+                  </div>
+                </div>
+                <div class="field button-field">
+                  <button id="resetAggregatesBtn" class="btn btn-ghost" disabled>
+                    <span>Reset Aggregates</span>
+                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                  </button>
+                </div>
+                <div class="field">
+                  <label for="shareProjectId">Project ID to Share</label>
+                  <div class="field-control">
+                    <input type="number" id="shareProjectId" placeholder="1" min="1" disabled />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="shareViewer">Viewer Address</label>
+                  <div class="field-control">
+                    <input type="text" id="shareViewer" placeholder="0x..." disabled />
+                  </div>
+                </div>
+                <div class="field button-field span-two">
+                  <button id="shareAggregatesBtn" class="btn btn-ghost" disabled>
+                    <span>Share Aggregates</span>
+                    <i class="fa-solid fa-share-nodes"></i>
+                  </button>
+                </div>
+              </div>
+            </details>
+          </div>
+        </article>
+      </section>
+      <section class="status-panel">
+        <div id="status" class="status-box" aria-live="polite">Waiting for MetaMask connection...</div>
+        <div id="result" class="status-box" aria-live="polite"></div>
+      </section>
+    </main>
+    <script type="module" crossorigin src="https://cdn.zama.ai/relayer-sdk-js/0.2.0/relayer-sdk-js.js"></script>
+    <script type="module" crossorigin src="https://cdn.jsdelivr.net/npm/ethers@6.15.0/+esm"></script>
+    <script type="module">
+      import {
+        BrowserProvider,
+        Contract,
+        isAddress,
+        hexlify,
+        keccak256,
+        toUtf8Bytes,
+      } from "https://cdn.jsdelivr.net/npm/ethers@6.15.0/+esm";
+      import {
+        initSDK,
+        createInstance,
+        SepoliaConfig,
+      } from "https://cdn.zama.ai/relayer-sdk-js/0.2.0/relayer-sdk-js.js";
+
+      const $ = (id) => document.getElementById(id);
+      const [
+        connectBtn,
+        submitReportBtn,
+        viewAggregatesBtn,
+        resetAggregatesBtn,
+        shareAggregatesBtn,
+        projectId,
+        severity,
+        viewProjectId,
+        resetProjectId,
+        shareProjectId,
+        shareViewer,
+        status,
+        result,
+        aggregateResult,
+        ownerToolsPanel,
+        recentSubmissions,
+        recentSubmissionsBody,
+      ] = [
+        "connect",
+        "submitReportBtn",
+        "viewAggregatesBtn",
+        "resetAggregatesBtn",
+        "shareAggregatesBtn",
+        "projectId",
+        "severity",
+        "viewProjectId",
+        "resetProjectId",
+        "shareProjectId",
+        "shareViewer",
+        "status",
+        "result",
+        "aggregateResult",
+        "ownerTools",
+        "recentSubmissions",
+        "recentSubmissionsBody",
+      ].map($);
+
+      const CONTRACT_ADDRESS = "0xE0546d209E31935b0C6a7ADFaB9A99Ae04E91526";
+      const RELAYER_URL = "https://relayer.testnet.zama.cloud";
+
+      function setOwnerToolsAvailability(isOwner) {
+        if (!ownerToolsPanel) return;
+        ownerToolsPanel.hidden = !isOwner;
+        if (!isOwner) {
+          ownerToolsPanel.open = false;
+        }
+        [resetProjectId, shareProjectId, shareViewer].forEach((input) => {
+          if (!input) return;
+          input.disabled = !isOwner;
+          if (!isOwner) input.value = "";
+        });
+        [resetAggregatesBtn, shareAggregatesBtn].forEach((btn) => {
+          if (!btn) return;
+          btn.disabled = !isOwner;
+        });
+      }
+      setOwnerToolsAvailability(false);
+
+      function randomEntropySeed() {
+        if (typeof crypto !== "undefined") {
+          if (crypto.randomUUID) return crypto.randomUUID();
+          const array = new Uint32Array(4);
+          crypto.getRandomValues(array);
+          return Array.from(array, (n) => n.toString(16)).join("");
+        }
+        return `${Math.random()}-${Date.now()}`;
+      }
+
+      function synthesizeContentHash(projectId) {
+        const seed = `anon:${projectId.toString()}:${Date.now()}:${randomEntropySeed()}`;
+        const hash = keccak256(toUtf8Bytes(seed));
+        log(`Derived synthetic content hash from seed "${seed}": ${hash}`);
+        return hash;
+      }
+
+      const anonymousBugReportsAbi = [
+        {
+          inputs: [],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          anonymous: false,
+          inputs: [{ indexed: true, name: "projectId", type: "uint256" }],
+          name: "ProjectInitialized",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            { indexed: true, name: "projectId", type: "uint256" },
+            { indexed: true, name: "contentHash", type: "bytes32" },
+            { indexed: false, name: "severityHandle", type: "bytes32" },
+            { indexed: false, name: "sumHandle", type: "bytes32" },
+            { indexed: false, name: "countHandle", type: "bytes32" },
+          ],
+          name: "ReportSubmitted",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [{ indexed: true, name: "projectId", type: "uint256" }],
+          name: "AggregatesReset",
+          type: "event",
+        },
+        {
+          inputs: [
+            { name: "projectId", type: "uint256" },
+            { name: "contentHash", type: "bytes32" },
+            { name: "severityExt", type: "bytes32" },
+            { name: "proof", type: "bytes" },
+          ],
+          name: "submitReport",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [{ name: "projectId", type: "uint256" }],
+          name: "projectExists",
+          outputs: [{ name: "", type: "bool" }],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [{ name: "projectId", type: "uint256" }],
+          name: "getAggregateHandles",
+          outputs: [
+            { name: "sumHandle", type: "bytes32" },
+            { name: "countHandle", type: "bytes32" },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [{ name: "projectId", type: "uint256" }],
+          name: "resetAggregates",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            { name: "projectId", type: "uint256" },
+            { name: "viewer", type: "address" },
+          ],
+          name: "shareAggregates",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "owner",
+          outputs: [{ name: "", type: "address" }],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "version",
+          outputs: [{ name: "", type: "string" }],
+          stateMutability: "pure",
+          type: "function",
+        },
+        {
+          inputs: [{ name: "newOwner", type: "address" }],
+          name: "transferOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ];
+
+      let provider, signer, user, relayer, contract, contractOwner;
+      let step = 0;
+
+      function log(msg) {
+        console.log(`[${++step}] ${msg}`);
+      }
+
+      function addLoadingAnimation(btn) {
+        btn.classList.add("loading");
+      }
+
+      function removeLoadingAnimation(btn) {
+        btn.classList.remove("loading");
+      }
+
+      function addEncryptionAnimation(element) {
+        element.classList.add("encrypt-animation");
+        setTimeout(() => element.classList.remove("encrypt-animation"), 3000);
+      }
+
+      function addSuccessFlash(element) {
+        element.classList.add("success-flash");
+        setTimeout(() => element.classList.remove("success-flash"), 500);
+      }
+
+      function normalizeHandleKey(handle) {
+        return (typeof handle === "string" ? handle : hexlify(handle)).replace(/^0x/, "").toLowerCase();
+      }
+
+      function readDecryptedValue(out, handle) {
+        if (!out) {
+          throw new Error("Empty decrypt response");
+        }
+        const normalized = normalizeHandleKey(handle);
+        for (const [key, value] of Object.entries(out)) {
+          if (normalizeHandleKey(key) === normalized) {
+            return typeof value === "bigint" ? value : BigInt(value);
+          }
+        }
+        const fallback = Object.values(out)[0];
+        if (fallback !== undefined) {
+          return typeof fallback === "bigint" ? fallback : BigInt(fallback);
+        }
+        throw new Error(`Unable to read decrypted value for handle ${handle}`);
+      }
+
+      function formatAverage(sum, count) {
+        if (count === 0n) return "0.00";
+        const whole = sum / count;
+        const remainder = sum % count;
+        const fraction = ((remainder * 100n + count / 2n) / count).toString().padStart(2, "0");
+        return `${whole}.${fraction}`;
+      }
+
+      async function updateStatus() {
+        if (!contract) return;
+        try {
+          const owner = await contract.owner();
+          const version = await contract.version();
+          contractOwner = owner;
+          const isOwner = Boolean(user) && owner.toLowerCase() === user.toLowerCase();
+          setOwnerToolsAvailability(isOwner);
+          result.textContent = `Contract Version: ${version} | Owner: ${owner.slice(0, 6)}...${owner.slice(-4)}`;
+        } catch (e) {
+          log(`Status update error: ${e.message}`);
+          setOwnerToolsAvailability(false);
+        }
+      }
+
+      async function connectMetaMask() {
+        addLoadingAnimation(connectBtn);
+        log("Checking window.ethereum...");
+        if (!window.ethereum || typeof window.ethereum.request !== "function") {
+          status.textContent = "❌ MetaMask is not installed or does not support EIP-1193";
+          log("MetaMask not found or does not support EIP-1193");
+          removeLoadingAnimation(connectBtn);
+          return false;
+        }
+        try {
+          provider = new BrowserProvider(window.ethereum);
+          await provider.send("eth_requestAccounts", []);
+          signer = await provider.getSigner();
+          user = await signer.getAddress();
+          let network = await provider.getNetwork();
+          if (network.chainId !== BigInt(11155111)) {
+            status.textContent = "⏳ Switching to Sepolia network...";
+            log(`Incorrect network: ${network.chainId}. Requesting Sepolia (11155111)`);
+            try {
+              await provider.send("wallet_switchEthereumChain", [{ chainId: "0xaa36a7" }]);
+              network = await provider.getNetwork();
+            } catch (switchError) {
+              if (switchError.code === 4902) {
+                try {
+                  await provider.send("wallet_addEthereumChain", [
+                    {
+                      chainId: "0xaa36a7",
+                      chainName: "Sepolia",
+                      nativeCurrency: { name: "Sepolia Ether", symbol: "ETH", decimals: 18 },
+                      rpcUrls: ["https://rpc.sepolia.org"],
+                      blockExplorerUrls: ["https://sepolia.etherscan.io"],
+                    },
+                  ]);
+                  network = await provider.getNetwork();
+                } catch (addError) {
+                  status.textContent = "❌ Unable to add Sepolia network";
+                  log(`Add network error: ${addError.message}`);
+                  removeLoadingAnimation(connectBtn);
+                  return false;
+                }
+              } else {
+                status.textContent = "❌ Please switch to Sepolia network";
+                log(`Network switch error: ${switchError.message}`);
+                removeLoadingAnimation(connectBtn);
+                return false;
+              }
+            }
+            if (network.chainId !== BigInt(11155111)) {
+              status.textContent = "❌ Please switch to Sepolia network";
+              log(`Failed to switch network: ${network.chainId}`);
+              removeLoadingAnimation(connectBtn);
+              return false;
+            }
+          }
+          status.textContent = `✅ Connected: ${user.slice(0, 6)}...${user.slice(-4)}`;
+          log(`Connected account: ${user}`);
+          connectBtn.innerHTML = `<img src="https://raw.githubusercontent.com/MetaMask/metamask-extension/master/app/images/logo/metamask-fox.svg" alt="MetaMask"><span>${user.slice(0, 6)}...${user.slice(-4)}</span>`;
+          connectBtn.disabled = true;
+          document.getElementById("topbar").classList.add("connected");
+          projectId.disabled = false;
+          severity.disabled = false;
+          viewProjectId.disabled = false;
+          submitReportBtn.disabled = false;
+          viewAggregatesBtn.disabled = false;
+          setOwnerToolsAvailability(false);
+          addSuccessFlash(status);
+          log("Initializing Relayer SDK...");
+          await initSDK();
+          log("Relayer SDK initialized");
+          const relayerConfig = {
+            ...SepoliaConfig,
+            network: window.ethereum,
+            relayerUrl: RELAYER_URL,
+            debug: true,
+          };
+          log("Creating relayer...");
+          relayer = await createInstance(relayerConfig);
+          log("Relayer ready");
+          log("Creating contract instance...");
+          contract = new Contract(CONTRACT_ADDRESS, anonymousBugReportsAbi, signer);
+          log(`Contract initialized: ${CONTRACT_ADDRESS}`);
+          await updateStatus();
+          removeLoadingAnimation(connectBtn);
+          return true;
+        } catch (e) {
+          status.textContent = `❌ Connection error: ${e.message}`;
+          log(`Connection error: ${e.message}`);
+          setOwnerToolsAvailability(false);
+          removeLoadingAnimation(connectBtn);
+          return false;
+        }
+      }
+
+      window.addEventListener("load", () => {
+        log("Page loaded, attaching handler to MetaMask button");
+        connectBtn.onclick = connectMetaMask;
+      });
+
+      submitReportBtn.onclick = async () => {
+        if (!relayer || !contract) {
+          status.textContent = "❌ Connect MetaMask first";
+          log("MetaMask not connected");
+          return;
+        }
+        const projId = projectId.value.trim();
+        const sev = severity.value;
+        if (!projId || parseInt(projId) <= 0) {
+          status.textContent = "❌ Invalid project ID";
+          log(`Invalid project ID: ${projId}`);
+          return;
+        }
+        if (!sev || parseInt(sev) < 1 || parseInt(sev) > 5) {
+          status.textContent = "❌ Invalid severity (must be 1-5)";
+          log(`Invalid severity: ${sev}`);
+          return;
+        }
+        const projectIdBn = BigInt(projId);
+        const contentHashBytes = synthesizeContentHash(projectIdBn);
+        submitReportBtn.disabled = true;
+        addLoadingAnimation(submitReportBtn);
+        addEncryptionAnimation(severity);
+        status.textContent = "⏳ Submitting report...";
+        try {
+          const buf = relayer.createEncryptedInput(CONTRACT_ADDRESS, user);
+          buf.add8(parseInt(sev));
+          const { handles, inputProof } = await buf.encrypt();
+          if (!handles || !handles[0]) {
+            throw new Error("Relayer did not return severity handle");
+          }
+          const severityExt = hexlify(handles[0]);
+          const proofBytes = hexlify(inputProof);
+          log(`severityExt: ${severityExt}`);
+          log(`proof(bytes): ${(proofBytes.length - 2) / 2} bytes`);
+          await contract.submitReport.staticCall(projectIdBn, contentHashBytes, severityExt, proofBytes);
+          log("Static call passed");
+          const tx = await contract.submitReport(projectIdBn, contentHashBytes, severityExt, proofBytes);
+          log(`txHash: ${tx.hash}`);
+          await tx.wait();
+          status.textContent = "✅ Report submitted";
+          const hashPreview = `${contentHashBytes.slice(0, 10)}...${contentHashBytes.slice(-6)}`;
+          result.textContent = `🎉 Report submitted for project ${projectIdBn.toString()} | Hash: ${hashPreview} | tx: ${tx.hash}`;
+          addSuccessFlash(result);
+        } catch (e) {
+          status.textContent = `❌ Error: ${e.message}`;
+          log(`Submit report error: ${e.message}`);
+        } finally {
+          submitReportBtn.disabled = false;
+          removeLoadingAnimation(submitReportBtn);
+          await updateStatus();
+        }
+      };
+
+      viewAggregatesBtn.onclick = async () => {
+        if (!relayer || !contract) {
+          status.textContent = "❌ Connect MetaMask first";
+          log("MetaMask not connected");
+          return;
+        }
+        const projId = viewProjectId.value.trim();
+        if (!projId || parseInt(projId) <= 0) {
+          status.textContent = "❌ Invalid project ID";
+          log(`Invalid project ID: ${projId}`);
+          return;
+        }
+        const projectIdBn = BigInt(projId);
+        viewAggregatesBtn.disabled = true;
+        addLoadingAnimation(viewAggregatesBtn);
+        status.textContent = "⏳ Retrieving aggregates...";
+        try {
+          const exists = await contract.projectExists(projectIdBn);
+          log(`projectExists(${projectIdBn.toString()}) => ${exists}`);
+          if (!exists) {
+            throw new Error(`Project ${projId} does not exist`);
+          }
+          const [sumHandle, countHandle] = await contract.getAggregateHandles(projectIdBn);
+          log(`Sum handle: ${sumHandle}, Count handle: ${countHandle}`);
+          const out = await relayer.publicDecrypt([sumHandle, countHandle]);
+          const outSummary = Array.isArray(out)
+            ? out.map((value, idx) => `[#${idx}] ${value.toString ? value.toString() : value}`)
+            : Object.entries(out).map(([k, v]) => `${k}:${typeof v === "bigint" ? v.toString() : v}`);
+          log(`publicDecrypt output -> ${outSummary.join(", ")}`);
+          const sum = readDecryptedValue(out, sumHandle);
+          const count = readDecryptedValue(out, countHandle);
+          const average = count > 0n ? formatAverage(sum, count) : "0.00";
+          log(`Decrypted metrics -> sum=${sum.toString()} count=${count.toString()} avg=${average}`);
+          aggregateResult.textContent = `Project ${projectIdBn.toString()} | Sum: ${sum.toString()} | Count: ${count.toString()} | Avg: ${average}`;
+          status.textContent = "✅ Aggregates retrieved";
+          addSuccessFlash(aggregateResult);
+        } catch (e) {
+          status.textContent = `❌ Error: ${e.message}`;
+          log(`View aggregates error: ${e.message}`);
+        } finally {
+          viewAggregatesBtn.disabled = false;
+          removeLoadingAnimation(viewAggregatesBtn);
+          await updateStatus();
+        }
+      };
+
+      resetAggregatesBtn.onclick = async () => {
+        if (!relayer || !contract) {
+          status.textContent = "❌ Connect MetaMask first";
+          log("MetaMask not connected");
+          return;
+        }
+        const projId = resetProjectId.value.trim();
+        if (!projId || parseInt(projId) <= 0) {
+          status.textContent = "❌ Invalid project ID";
+          log(`Invalid project ID: ${projId}`);
+          return;
+        }
+        const projectIdBn = BigInt(projId);
+        resetAggregatesBtn.disabled = true;
+        addLoadingAnimation(resetAggregatesBtn);
+        status.textContent = "⏳ Resetting aggregates...";
+        try {
+          await contract.resetAggregates.staticCall(projectIdBn);
+          log("Static call passed");
+          const tx = await contract.resetAggregates(projectIdBn);
+          log(`txHash: ${tx.hash}`);
+          await tx.wait();
+          status.textContent = "✅ Aggregates reset";
+          result.textContent = `🎉 Aggregates for project ${projectIdBn.toString()} reset (tx: ${tx.hash})`;
+          addSuccessFlash(result);
+        } catch (e) {
+          status.textContent = `❌ Error: ${e.message}`;
+          log(`Reset aggregates error: ${e.message}`);
+        } finally {
+          resetAggregatesBtn.disabled = false;
+          removeLoadingAnimation(resetAggregatesBtn);
+          await updateStatus();
+        }
+      };
+
+      shareAggregatesBtn.onclick = async () => {
+        if (!relayer || !contract) {
+          status.textContent = "❌ Connect MetaMask first";
+          log("MetaMask not connected");
+          return;
+        }
+        const projId = shareProjectId.value.trim();
+        const viewer = shareViewer.value.trim();
+        if (!projId || parseInt(projId) <= 0) {
+          status.textContent = "❌ Invalid project ID";
+          log(`Invalid project ID: ${projId}`);
+          return;
+        }
+        if (!viewer || !isAddress(viewer)) {
+          status.textContent = "❌ Invalid viewer address";
+          log(`Invalid viewer address: ${viewer}`);
+          return;
+        }
+        const projectIdBn = BigInt(projId);
+        shareAggregatesBtn.disabled = true;
+        addLoadingAnimation(shareAggregatesBtn);
+        status.textContent = "⏳ Sharing aggregates...";
+        try {
+          await contract.shareAggregates.staticCall(projectIdBn, viewer);
+          log("Static call passed");
+          const tx = await contract.shareAggregates(projectIdBn, viewer);
+          log(`txHash: ${tx.hash}`);
+          await tx.wait();
+          status.textContent = "✅ Aggregates shared";
+          result.textContent = `🎉 Aggregates for project ${projectIdBn.toString()} shared with ${viewer.slice(0, 6)}...${viewer.slice(-4)} (tx: ${tx.hash})`;
+          addSuccessFlash(result);
+        } catch (e) {
+          status.textContent = `❌ Error: ${e.message}`;
+          log(`Share aggregates error: ${e.message}`);
+        } finally {
+          shareAggregatesBtn.disabled = false;
+          removeLoadingAnimation(shareAggregatesBtn);
+          await updateStatus();
+        }
+      };
+    </script>
+  </body>
+</html>
